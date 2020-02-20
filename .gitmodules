@@ -1,0 +1,3 @@
+[submodule "ansible-pacemaker-centos8"]
+	path = ansible-pacemaker-centos8
+	url = https://github.com/kskmori/ansible-pacemaker-centos8

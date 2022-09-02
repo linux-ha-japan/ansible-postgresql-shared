@@ -11,7 +11,7 @@
         continue ?
       private: no
       default: "y"
-      tags: erasedb
+      #tags: erasedb
 
   roles:
     - role: postgresql-erasedb

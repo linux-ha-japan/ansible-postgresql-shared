@@ -14,8 +14,11 @@
 
 - name: make sure the minor revision of PostgreSQL
   set_fact:
-    pg_rev: '11.4-1PGDG'
+    pg_rev: '13.7-1PGDG'
   when: pg_rev is not defined
+- name: extract major version number of PostgreSQL
+  set_fact:
+    pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
 
 - name: copy PostgreSQL packages to the node
   copy:
@@ -23,17 +26,18 @@
     dest="/tmp/"
   with_items:
       # the order is significant - as each rpms will be installed in this order
-      - postgresql11-libs-{{ pg_rev }}.rhel8.x86_64.rpm
-      - postgresql11-{{ pg_rev }}.rhel8.x86_64.rpm
-      - postgresql11-server-{{ pg_rev }}.rhel8.x86_64.rpm
-      - postgresql11-docs-{{ pg_rev }}.rhel8.x86_64.rpm
-      - postgresql11-contrib-{{ pg_rev }}.rhel8.x86_64.rpm
+      - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel8.x86_64.rpm
+      - postgresql{{ pg_major }}-{{ pg_rev }}.rhel8.x86_64.rpm
+      - postgresql{{ pg_major }}-server-{{ pg_rev }}.rhel8.x86_64.rpm
+      - postgresql{{ pg_major }}-docs-{{ pg_rev }}.rhel8.x86_64.rpm
+      - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.rhel8.x86_64.rpm
   register: rc_copy
 
 - name: install PostgreSQL packages
   yum:
     name: "{{ item.dest | default(item.path) }}"
     update_cache: yes
+    disable_gpg_check: True
     state: present
   with_items: "{{ rc_copy.results }}"
   loop_control:
@@ -44,16 +48,17 @@
   become: yes
   become_user: postgres
   lineinfile:
-    dest="/var/lib/pgsql/.bash_profile"
-    regexp="^export PATH=/usr/pgsql-11/bin:\$PATH"
-    line="export PATH=/usr/pgsql-11/bin:$PATH"
+    dest="/var/lib/pgsql/.pgsql_profile"
+    regexp="^export PATH=/usr/pgsql-{{ pg_major }}/bin:\$PATH"
+    line="export PATH=/usr/pgsql-{{ pg_major }}/bin:$PATH"
     state=present
+    create=yes
 
 - name: add PGDATA to postgres user environment
   become: yes
   become_user: postgres
   lineinfile:
-    dest="/var/lib/pgsql/.bash_profile"
+    dest="/var/lib/pgsql/.pgsql_profile"
     regexp="^export PGDATA="
     line="export PGDATA={{ PGDATA }}"
     state=present

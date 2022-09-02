@@ -1,10 +1,25 @@
+- name: make sure the minor revision of PostgreSQL
+  set_fact:
+    pg_rev: '13.7-1PGDG'
+  when: pg_rev is not defined
+- name: extract major version number of PostgreSQL
+  set_fact:
+    pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
+
+### Remove postgres user's environment
+- name: remove .pgsql_profile
+  file:
+    path: "/var/lib/pgsql/.pgsql_profile"
+    state: absent
+
+### Uninstall PostgreSQL packages
 # yum module on rhel8 does not handle a wildcard name like:
-#    name: postgresql11-*
+#    name: postgresql{{ pg_major }}-*
 - name: uninstall PostgreSQL packages
   yum:
     name:
-      - postgresql11
-      - postgresql11-libs
-      - postgresql11-docs
+      - postgresql{{ pg_major }}
+      - postgresql{{ pg_major }}-libs
+      - postgresql{{ pg_major }}-docs
     autoremove: yes
     state: absent

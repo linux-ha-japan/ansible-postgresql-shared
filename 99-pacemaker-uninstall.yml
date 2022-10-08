@@ -1,1 +1,0 @@
-- import_playbook: ./ansible-pacemaker-centos8/99-pacemaker-uninstall.yml

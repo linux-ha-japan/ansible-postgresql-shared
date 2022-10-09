@@ -40,7 +40,7 @@ iscsi:
     TARGET_PORTS: # multipath
       - 192.168.122.70:3260
       - 192.168.202.70:3260
-    TARGET_IQN: iqn.2020-02.local.centos81-0:storage1
+    TARGET_IQN: iqn.2022-09.local.storage:storage1
     TARGET_LUN_SIZE: 1G
 
 # PostgreSQL shared storage configuration variables
@@ -50,12 +50,15 @@ hacluster-shared:
   vars:
     SHAREDDISK_DEV: /dev/mapper/mpatha
     SHAREDDISK_PARTITIONS:
-      - { number: 1, part_start: 0%,    part_end: 64MiB }
-      - { number: 2, part_start: 64MiB,  part_end: 100% }
+      - { number: 1, part_start:     0%, part_end:   4MiB, fstype:     }
+      - { number: 2, part_start:   4MiB, part_end: 600MiB, fstype: xfs }
+      - { number: 3, part_start: 600MiB, part_end: 800MiB, fstype: xfs }
+      - { number: 4, part_start: 800MiB, part_end:   100%, fstype: xfs }
 
-    SBD_DEVICE: /dev/mapper/mpatha1
     PG_FILESYSTEMS:
-      - { resourceid: pgsql-filesystem, mountpoint: /shared, device: /dev/mapper/mpatha2 }
+      - { resourceid: pgsql-filesystem1, mountpoint: /shared/pgdata, device: /dev/mapper/mpatha2 }
+      - { resourceid: pgsql-filesystem2, mountpoint: /shared/pgwal,  device: /dev/mapper/mpatha3 }
+      - { resourceid: pgsql-filesystem3, mountpoint: /shared/pgarch, device: /dev/mapper/mpatha4 }
     # (Optional) subdirectories to be created under the mountpoints if necessary
     PG_SUBDIRECTORIES:
       - /shared/pgdata/data

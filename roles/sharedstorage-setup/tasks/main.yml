@@ -16,18 +16,11 @@
     partprobe {{ SHAREDDISK_DEV }}
   when: parted.changed
 
-## # pcs stonith sbd device setup device=SBD_DEVICE   --force # (RHEL8)
-## # pcs stonith sbd device setup --device=SBD_DEVICE --force # (RHEL7)
-- name: initialize SBD partition
-  command: >-
-    pcs stonith sbd device setup device={{ SBD_DEVICE }} --force
-  when: inventory_hostname == ansible_play_hosts[0]
-
 ## # mkfs -t xfs -d su=512k,sw=3 -f {{ SHAREDDISK_DEV }}{1-4}
 - name: make filesystem for the database partitions
   filesystem:
-    dev: "{{ item.device }}"
+    dev: "{{ SHAREDDISK_DEV }}{{ item.number }}"
     fstype: xfs
     opts: -d su=512k,sw=3
-  with_items: "{{ PG_FILESYSTEMS }}"
-  when: inventory_hostname == ansible_play_hosts[0]
+  with_items: "{{ SHAREDDISK_PARTITIONS }}"
+  when: inventory_hostname == ansible_play_hosts[0] and item.fstype == 'xfs'

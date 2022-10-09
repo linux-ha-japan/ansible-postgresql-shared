@@ -1,0 +1,19 @@
+### Manually start the PostgreSQL database
+
+## start PostgreSQL
+# mount directories
+# not using mount module so not to modify /etc/fstab neither remove the mountpoint
+# ref. https://github.com/ansible/ansible/issues/48134
+- name: mount the DB mountpoints
+  command: >-
+    env LANG=C mount {{ item.device }} {{ item.mountpoint }}
+  register: result
+  changed_when: result.rc == 0
+  failed_when: result.rc != 0 and "already mounted" not in result.stderr
+  with_items: "{{ PG_FILESYSTEMS }}"
+
+# start PostgreSQL
+- name: start PostgreSQL server
+  become: yes
+  become_user: postgres
+  shell: . /var/lib/pgsql/.bash_profile && pg_ctl -D {{ PGDATA }} start

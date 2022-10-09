@@ -1,0 +1,19 @@
+### Manually stop the PostgreSQL database
+
+## stop PostgreSQL
+# check if PostgreSQL is running
+- stat: path={{ PGDATA }}/postmaster.pid
+  register: db_pid
+- name: stop PostgreSQL server
+  become: yes
+  become_user: postgres
+  shell: . /var/lib/pgsql/.bash_profile && pg_ctl -D {{ PGDATA }} stop
+  when: db_pid.stat.exists
+
+- name: unmount the DB mountpoints
+  command: >-
+    env LANG=C umount {{ item.mountpoint }}
+  register: result
+  changed_when: result.rc == 0
+  failed_when: result.rc != 0 and "not mounted" not in result.stderr
+  with_items: "{{ PG_FILESYSTEMS }}"

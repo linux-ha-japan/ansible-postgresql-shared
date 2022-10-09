@@ -1,0 +1,14 @@
+### manually start PostgreSQL server
+# NOTE:
+#  This playbook is only for testing purpose
+#    and not necessary to run when it's managed by Pacemaker cluster.
+#  DO NOT run this role against two or more nodes at the same time
+#    otherwise the data on the shareddisk will be currupted!
+- hosts: hacluster_shared
+  become: true
+  max_fail_percentage: 0
+  gather_facts: no
+
+  roles:
+    - role: postgresql-start
+      when: inventory_hostname == ansible_play_hosts[0]

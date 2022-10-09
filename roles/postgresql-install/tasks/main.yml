@@ -23,7 +23,7 @@
 - name: copy PostgreSQL packages to the node
   copy:
     src="{{ item }}"
-    dest="/tmp/"
+    dest="/var/tmp/"
   with_items:
       # the order is significant - as each rpms will be installed in this order
       - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel8.x86_64.rpm

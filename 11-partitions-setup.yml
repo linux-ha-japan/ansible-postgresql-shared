@@ -4,4 +4,4 @@
   gather_facts: no
 
   roles:
-    - role: sharedstorage-setup
+    - role: partitions-setup

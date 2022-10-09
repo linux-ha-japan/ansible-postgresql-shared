@@ -3,7 +3,7 @@
 ### create symlinks as the persistent device name
 ## # (target host) targetcli /backstores/fileio/lun0 info | awk '/^wwn: / {print $2}'
 - name: obtain the wwn of the target lun
-  delegate_to: "{{ groups['iscsi-target'][0] }}"
+  delegate_to: "{{ groups['iscsi_target'][0] }}"
   shell: |
     targetcli /backstores/fileio/lun0 info | awk '/^wwn: / {print $2}'
   register: wwn

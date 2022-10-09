@@ -24,18 +24,18 @@ qnetd:
       qnetd_addr: 192.168.122.70
 
 # for iSCSI shared storage configuration
-iscsi-target:
+iscsi_target:
   hosts:
     centos81-0:
 
-iscsi-initiator:
+iscsi_initiator:
   children:
     hacluster:
 
 iscsi:
   children:
-    iscsi-target:
-    iscsi-initiator:
+    iscsi_target:
+    iscsi_initiator:
   vars:
     TARGET_PORTS: # multipath
       - 192.168.122.70:3260
@@ -44,7 +44,7 @@ iscsi:
     TARGET_LUN_SIZE: 1G
 
 # PostgreSQL shared storage configuration variables
-hacluster-shared:
+hacluster_shared:
   children:
     hacluster:
   vars:

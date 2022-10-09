@@ -9,7 +9,7 @@
     - role: iscsi-initiator-cleanup
       tags: initiator, untagged
 
-- hosts: iscsi-target
+- hosts: iscsi_target
   become: true
   max_fail_percentage: 0
   gather_facts: no

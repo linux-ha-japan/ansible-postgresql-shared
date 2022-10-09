@@ -1,4 +1,4 @@
-- hosts: iscsi-target
+- hosts: iscsi_target
   become: true
   max_fail_percentage: 0
   gather_facts: no
@@ -7,7 +7,7 @@
     - role: iscsi-target-setup
   tags: target, untagged
 
-- hosts: iscsi-initiator
+- hosts: iscsi_initiator
   become: true
   max_fail_percentage: 0
   gather_facts: no

@@ -26,7 +26,7 @@
 
 ## # (target host) targetcli /iscsi/TARGET_IQN/tpg1/acls delete INITIATORNAME
 - name: delete ACL for the initiator
-  delegate_to: "{{ groups['iscsi-target'][0] }}"
+  delegate_to: "{{ groups['iscsi_target'][0] }}"
   command: >-
     targetcli /iscsi/{{ TARGET_IQN }}/tpg1/acls delete {{ initiatorname.stdout }}
   register: result

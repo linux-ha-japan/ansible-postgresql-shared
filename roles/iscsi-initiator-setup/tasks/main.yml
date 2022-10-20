@@ -41,3 +41,11 @@
   command: >-
     iscsiadm -m node -T {{ TARGET_IQN }} -p {{ item }} -l
   with_items: "{{ TARGET_PORTS }}"
+
+## # systemctl enable remote-fs.target
+## # systemctl start remote-fs.target
+- name: enable and start remote-fs.target
+  service:
+    name: remote-fs.target
+    state: started
+    enabled: yes

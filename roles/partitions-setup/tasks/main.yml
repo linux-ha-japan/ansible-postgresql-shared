@@ -14,7 +14,7 @@
 - name: update partitions information on both nodes
   command: >-
     partprobe {{ SHAREDDISK_DEV }}
-  when: parted.changed
+  when: hostvars[ansible_play_hosts[0]].parted.changed
 
 ## # mkfs -t xfs -d su=512k,sw=3 -f {{ SHAREDDISK_DEV }}{1-4}
 - name: make filesystem for the database partitions

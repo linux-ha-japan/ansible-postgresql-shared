@@ -41,14 +41,6 @@
     path: /home/iscsi
     state: directory
 
-## # targetcli /backstores/fileio create lun0 /home/iscsi/lun0.img TARGET_LUN_SIZE
-- name: create the fileio backstore
-  command: >-
-    targetcli /backstores/fileio create lun0 /home/iscsi/lun0.img {{ TARGET_LUN_SIZE }}
-  register: result
-  changed_when: result.rc == 0
-  failed_when: result.rc != 0 and "already exists" not in result.stderr
-
 ## # targetcli /iscsi create TARGET_IQN
 - name: create the iscsi target
   command: >-
@@ -57,13 +49,35 @@
   changed_when: result.rc == 0
   failed_when: result.rc != 0 and "already exists" not in result.stderr
 
-## # targetcli /iscsi/TARGET_IQN/tpg1/luns create /backstores/fileio/lun0
-- name: attach the fileio backstore
+### create each LUNs
+- name: bail if an old configuration is used
+  fail:
+    msg: |-
+      TARGET_LUN_SIZE variable in the inventory is obsolated.
+      Use the new format of TARGET_LUNS variable. See the latest inventories/hosts-sample.yml.
+  when: TARGET_LUN_SIZE is defined
+
+## # targetcli /backstores/fileio create LUN.name /home/iscsi/LUN.name.img LUN.size
+- name: create the fileio backstore
   command: >-
-    targetcli /iscsi/{{ TARGET_IQN }}/tpg1/luns create /backstores/fileio/lun0
+    targetcli /backstores/fileio create {{ LUN.name }} /home/iscsi/{{ LUN.name }}.img {{ LUN.size }}
   register: result
   changed_when: result.rc == 0
   failed_when: result.rc != 0 and "already exists" not in result.stderr
+  with_items: "{{ TARGET_LUNS }}"
+  loop_control:
+    loop_var: LUN
+
+## # targetcli /iscsi/TARGET_IQN/tpg1/luns create /backstores/fileio/LUN.name
+- name: attach the fileio backstore
+  command: >-
+    targetcli /iscsi/{{ TARGET_IQN }}/tpg1/luns create /backstores/fileio/{{ LUN.name }}
+  register: result
+  changed_when: result.rc == 0
+  failed_when: result.rc != 0 and "already exists" not in result.stderr
+  with_items: "{{ TARGET_LUNS }}"
+  loop_control:
+    loop_var: LUN
 
 ## # targetcli saveconfig
 - name: save config

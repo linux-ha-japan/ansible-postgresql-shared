@@ -6,8 +6,6 @@
 #   so it would be always "changed"
 - name: uninstall old version of PostgreSQL
   shell: rpm -e postgresql-libs
-  args:
-    warn: false
   register: rpm_rc
   changed_when: rpm_rc.rc == 0
   failed_when: false

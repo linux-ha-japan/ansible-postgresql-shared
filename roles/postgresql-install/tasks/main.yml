@@ -17,10 +17,12 @@
 - name: extract major version number of PostgreSQL
   set_fact:
     pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
-- name: make sure the target distribution major version
-  set_fact:
-    rhel_major: '8'
-  when: rhel_major is not defined
+- name: make sure pg_rev format is valid
+  fail:
+    msg: |
+      'pg_rev' format must look like '15.8-1PGDG.rhel8'
+      Hint - the format has been changed so that it must contains rhel revision
+  when: '"rhel" not in pg_rev'
 
 
 - name: copy PostgreSQL packages to the node
@@ -29,11 +31,11 @@
     dest="/var/tmp/"
   with_items:
       # the order is significant - as each rpms will be installed in this order
-      - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel{{ rhel_major }}.x86_64.rpm
-      - postgresql{{ pg_major }}-{{ pg_rev }}.rhel{{ rhel_major }}.x86_64.rpm
-      - postgresql{{ pg_major }}-server-{{ pg_rev }}.rhel{{ rhel_major }}.x86_64.rpm
-      - postgresql{{ pg_major }}-docs-{{ pg_rev }}.rhel{{ rhel_major }}.x86_64.rpm
-      - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.rhel{{ rhel_major }}.x86_64.rpm
+      - postgresql{{ pg_major }}-libs-{{ pg_rev }}.x86_64.rpm
+      - postgresql{{ pg_major }}-{{ pg_rev }}.x86_64.rpm
+      - postgresql{{ pg_major }}-server-{{ pg_rev }}.x86_64.rpm
+      - postgresql{{ pg_major }}-docs-{{ pg_rev }}.x86_64.rpm
+      - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.x86_64.rpm
   register: rc_copy
 
 - name: install PostgreSQL packages

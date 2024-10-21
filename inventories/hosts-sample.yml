@@ -2,8 +2,8 @@ all:
   vars:
     HACLUSTER_PASSWORD: pacemaker
     CLUSTER_NAME: cluster_name
-    # for CentOS8
-    ansible_python_interpreter: /usr/libexec/platform-python
+    ### ansible-postgresql-shared
+    pg_rev: '15.8-1PGDG.rhel8'
 
 
 hacluster:

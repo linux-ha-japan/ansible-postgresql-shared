@@ -1,6 +1,6 @@
 - name: make sure the minor revision of PostgreSQL
   set_fact:
-    pg_rev: '13.7-1PGDG'
+    pg_rev: '15.8-1PGDG.rhel8'
   when: pg_rev is not defined
 - name: extract major version number of PostgreSQL
   set_fact:

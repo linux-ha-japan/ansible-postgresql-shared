@@ -1,3 +1,15 @@
+### remove each LUNs
+## # targetcli /backstores/fileio delete LUN.name
+- name: delete the fileio backstore
+  command: >-
+    targetcli /backstores/fileio delete {{ LUN.name }}
+  register: result
+  changed_when: result.rc == 0
+  failed_when: result.rc != 0 and "No storage object" not in result.stderr
+  with_items: "{{ TARGET_LUNS }}"
+  loop_control:
+    loop_var: LUN
+
 ## # targetcli /iscsi delete TARGET_IQN
 - name: delete the iscsi target
   command: >-
@@ -5,14 +17,6 @@
   register: result
   changed_when: result.rc == 0
   failed_when: result.rc != 0 and "No such Target" not in result.stderr
-
-## # targetcli /backstores/fileio delete lun0
-- name: delete the fileio backstore
-  command: >-
-    targetcli /backstores/fileio delete lun0
-  register: result
-  changed_when: result.rc == 0
-  failed_when: result.rc != 0 and "No storage object" not in result.stderr
 
 ## # targetcli saveconfig
 - name: save config

@@ -41,19 +41,20 @@ iscsi:
       - 192.168.122.70:3260
       - 192.168.202.70:3260
     TARGET_IQN: iqn.2022-09.local.storage:storage1
-    TARGET_LUN_SIZE: 1G
+    TARGET_LUNS:
+      - { name: lun0, size: 1G }
 
 # PostgreSQL shared storage configuration variables
 hacluster_shared:
   children:
     hacluster:
   vars:
-    SHAREDDISK_DEV: /dev/mapper/mpatha
     SHAREDDISK_PARTITIONS:
-      - { number: 1, part_start:     0%, part_end:   4MiB, fstype:     }
-      - { number: 2, part_start:   4MiB, part_end: 600MiB, fstype: xfs }
-      - { number: 3, part_start: 600MiB, part_end: 800MiB, fstype: xfs }
-      - { number: 4, part_start: 800MiB, part_end:   100%, fstype: xfs }
+      /dev/mapper/mpatha:
+        - { number: 1, part_start:     0%, part_end:   4MiB, fstype:     }
+        - { number: 2, part_start:   4MiB, part_end: 600MiB, fstype: xfs }
+        - { number: 3, part_start: 600MiB, part_end: 800MiB, fstype: xfs }
+        - { number: 4, part_start: 800MiB, part_end:   100%, fstype: xfs }
 
     PG_FILESYSTEMS:
       - { resourceid: pgsql-filesystem1, mountpoint: /shared/pgdata, device: /dev/mapper/mpatha2 }

@@ -3,32 +3,45 @@
   become: false
   gather_facts: no
 
+  vars:
+    # can be overwritten by -e option
+    pg_repo_base: "https://download.postgresql.org/pub/repos/yum"
+    pg_arch: "x86_64"
+
   tasks:
     - name: make sure the package revision of PostgreSQL
       set_fact:
-        pg_rev: '15.8-1PGDG.rhel8'
+        pg_rev: '18.2-1PGDG.rhel10.1'
       when: pg_rev is not defined
+
     - name: make sure pg_rev format is valid
       fail:
         msg: |
-          'pg_rev' format must look like '15.8-1PGDG.rhel8'
-          Hint - the format has been changed so that it must contains rhel revision
-      when: '"rhel" not in pg_rev'
+          'pg_rev' format must look like '18.2-1PGDG.rhel10.1'
+          Hint - the format has been changed so that it must contain rhel major.minor version
+      when: pg_rev is not match('^\d+\.\d+-\d+PGDG\.rhel\d+\.\d+$')
+
     - name: extract major version number of PostgreSQL
       set_fact:
-        pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
-    - name: make sure the target distribution major version
+        pg_major: "{{ pg_rev | regex_replace('^(\\d+)\\..*$', '\\1') }}"
+
+    - name: extract the target distribution version (major.minor)
       set_fact:
-        rhel_major: "{{ pg_rev | regex_replace('.*\\.rhel(\\d)', '\\1') }}"
+        rhel_ver: "{{ pg_rev | regex_replace('^.*\\.rhel(\\d+\\.\\d+)$', '\\1') }}"
+
+    - name: decide the repository directory
+      set_fact:
+        # rhel_repo_ver can be overwritten by -e option when the dist is different
+        pg_repo_dir: "rhel-{{ rhel_repo_ver | default(rhel_ver) }}-{{ pg_arch }}"
 
     - name: Download PostgreSQL {{ pg_rev }} packages
       get_url:
-        url="https://yum.postgresql.org/{{ pg_major }}/redhat/rhel-{{ rhel_major }}-x86_64/{{ item }}"
-        dest=./roles/postgresql-install/files/
-        timeout=60
-      with_items:
-        - postgresql{{ pg_major }}-libs-{{ pg_rev }}.x86_64.rpm
-        - postgresql{{ pg_major }}-{{ pg_rev }}.x86_64.rpm
-        - postgresql{{ pg_major }}-server-{{ pg_rev }}.x86_64.rpm
-        - postgresql{{ pg_major }}-docs-{{ pg_rev }}.x86_64.rpm
-        - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.x86_64.rpm
+        url: "{{ pg_repo_base }}/{{ pg_major }}/redhat/{{ pg_repo_dir }}/{{ item }}"
+        dest: ./roles/postgresql-install/files/
+        timeout: 60
+      loop:
+        - postgresql{{ pg_major }}-libs-{{ pg_rev }}.{{ pg_arch }}.rpm
+        - postgresql{{ pg_major }}-{{ pg_rev }}.{{ pg_arch }}.rpm
+        - postgresql{{ pg_major }}-server-{{ pg_rev }}.{{ pg_arch }}.rpm
+        - postgresql{{ pg_major }}-docs-{{ pg_rev }}.{{ pg_arch }}.rpm
+        - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.{{ pg_arch }}.rpm

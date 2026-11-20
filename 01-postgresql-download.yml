@@ -4,44 +4,31 @@
   gather_facts: no
 
   vars:
-    # can be overwritten by -e option
+    pg_rev: '18.2-1PGDG.rhel10.1'	# customize this value in the inventory file
     pg_repo_base: "https://download.postgresql.org/pub/repos/yum"
     pg_arch: "x86_64"
 
+    # derived values from pg_rev
+    pg_major: "{{ pg_rev.split('.')[0] }}"
+    rhel_ver: "{{ pg_rev | regex_search('rhel(\\d+\\.\\d+)$', '\\1') | first }}"
+    pg_repo_dir: "rhel-{{ rhel_repo_ver | default(rhel_ver) }}-{{ pg_arch }}"
+    pg_packages:
+       - postgresql{{ pg_major }}-libs-{{ pg_rev }}.{{ pg_arch }}.rpm
+       - postgresql{{ pg_major }}-{{ pg_rev }}.{{ pg_arch }}.rpm
+       - postgresql{{ pg_major }}-server-{{ pg_rev }}.{{ pg_arch }}.rpm
+       - postgresql{{ pg_major }}-docs-{{ pg_rev }}.{{ pg_arch }}.rpm
+       - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.{{ pg_arch }}.rpm
+
   tasks:
-    - name: make sure the package revision of PostgreSQL
-      set_fact:
-        pg_rev: '18.2-1PGDG.rhel10.1'
-      when: pg_rev is not defined
-
-    - name: make sure pg_rev format is valid
-      fail:
-        msg: |
-          'pg_rev' format must look like '18.2-1PGDG.rhel10.1'
-          Hint - the format has been changed so that it must contain rhel major.minor version
-      when: pg_rev is not match('^\d+\.\d+-\d+PGDG\.rhel\d+\.\d+$')
-
-    - name: extract major version number of PostgreSQL
-      set_fact:
-        pg_major: "{{ pg_rev | regex_replace('^(\\d+)\\..*$', '\\1') }}"
-
-    - name: extract the target distribution version (major.minor)
-      set_fact:
-        rhel_ver: "{{ pg_rev | regex_replace('^.*\\.rhel(\\d+\\.\\d+)$', '\\1') }}"
-
-    - name: decide the repository directory
-      set_fact:
-        # rhel_repo_ver can be overwritten by -e option when the dist is different
-        pg_repo_dir: "rhel-{{ rhel_repo_ver | default(rhel_ver) }}-{{ pg_arch }}"
+    - name: validate pg_rev format
+      ansible.builtin.assert:
+        that:
+          - pg_rev is match('^\d+\.\d+-\d+PGDG\.rhel\d+\.\d+$')
+        fail_msg: "'pg_rev' must look like '18.2-1PGDG.rhel10.1' (got: {{ pg_rev }})"
 
     - name: Download PostgreSQL {{ pg_rev }} packages
-      get_url:
+      ansible.builtin.get_url:
         url: "{{ pg_repo_base }}/{{ pg_major }}/redhat/{{ pg_repo_dir }}/{{ item }}"
         dest: ./roles/postgresql-install/files/
         timeout: 60
-      loop:
-        - postgresql{{ pg_major }}-libs-{{ pg_rev }}.{{ pg_arch }}.rpm
-        - postgresql{{ pg_major }}-{{ pg_rev }}.{{ pg_arch }}.rpm
-        - postgresql{{ pg_major }}-server-{{ pg_rev }}.{{ pg_arch }}.rpm
-        - postgresql{{ pg_major }}-docs-{{ pg_rev }}.{{ pg_arch }}.rpm
-        - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.{{ pg_arch }}.rpm
+      loop: "{{ pg_packages }}"
